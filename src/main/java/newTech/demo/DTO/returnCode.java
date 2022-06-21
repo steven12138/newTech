@@ -2,13 +2,13 @@ package newTech.demo.DTO;
 
 public enum returnCode {
     NoPrivileges(10001, "request forbidden"),
-    unKnownError(10002, "unknown error"),
-    wrongUsernameOrPassword(10003, "username or password error"),
-    notMatchedPassword(10004, "password incorrect"),
+    UnknownError(10002, "unknown error"),
+    WrongUsernameOrPassword(10003, "username or password error"),
+    NotMatchedPassword(10004, "password incorrect"),
 
-    techPassed(10005, "Tech exam already passed"),
-    phyPassed(10006, "Phy exam already passed"),
-    bothPassed(10007, "No need to sign up"),
+    TechPassed(10005, "Tech exam already passed"),
+    PhyPassed(10006, "Phy exam already passed"),
+    BothPassed(10007, "No need to sign up"),
 
     InvalidArgument(10008, "Argument Invalid"),
     InvalidToken(10009, "Token Invalid"),

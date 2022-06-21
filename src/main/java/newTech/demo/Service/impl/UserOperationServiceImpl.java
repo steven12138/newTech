@@ -7,9 +7,11 @@ import newTech.demo.DTO.FileDTO;
 import newTech.demo.DTO.response;
 import newTech.demo.DTO.returnCode;
 import newTech.demo.DTO.userDTO;
+import newTech.demo.Handler.Exception.DataNotFoundException;
 import newTech.demo.Module.Data.Account;
 import newTech.demo.Module.Data.UserForbidden;
 import newTech.demo.Module.Data.repository.AccountRepository;
+import newTech.demo.Module.Data.repository.UserForbiddenRepository;
 import newTech.demo.Service.UserOperationService;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -26,10 +28,7 @@ import javax.annotation.Resource;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserOperationServiceImpl implements UserOperationService {
@@ -38,6 +37,9 @@ public class UserOperationServiceImpl implements UserOperationService {
 
     @Resource
     BCryptPasswordEncoder passwordEncoder;
+
+    @Resource
+    UserForbiddenRepository userForbiddenRepo;
 
     @Resource
     RedisTemplate<Object, Object> redisTemplate;
@@ -61,7 +63,7 @@ public class UserOperationServiceImpl implements UserOperationService {
     @Transactional
     @Override
     public response<Object> importUser(FileDTO file) throws IOException {
-        Map<String, Integer> ColumnMap = new HashMap<>(7);
+        Map<String, Integer> ColumnMap = new HashMap<>(6);
         ColumnMap.put("username", 0);
         ColumnMap.put("realName", 1);
         ColumnMap.put("eid", 2);
@@ -88,7 +90,7 @@ public class UserOperationServiceImpl implements UserOperationService {
                 account.setMaxCredit((int) row.getCell(ColumnMap.get("maxCredit")).getNumericCellValue());
                 account.setPassword(
                         passwordEncoder.encode(row.getCell(ColumnMap.get("password")).getStringCellValue()));
-                account.setStep(1);
+                account.setStep(0);
                 account.set_admin(false);
                 accountRepo.save(account);
             } else {
@@ -105,12 +107,14 @@ public class UserOperationServiceImpl implements UserOperationService {
     @Override
     public response<Object> removeUser(FileDTO file) throws IOException {
         readSheet(loadSheet(file), (row) -> {
+            row.getCell(0).setCellType(CellType.STRING);
             String sid = row.getCell(0).getStringCellValue();
             Account account = accountRepo.findAccountBySid(sid);
+            if (Objects.isNull(account)) throw new DataNotFoundException("No Record During Remove");
             redisTemplate.delete("login" + account.getId());
             accountRepo.deleteAccountBySid(sid);
         });
-        return null;
+        return new response<>(returnCode.success, null);
     }
 
     @Override
@@ -133,7 +137,7 @@ public class UserOperationServiceImpl implements UserOperationService {
             Account save_result = accountRepo.save(account);
             return new response<>(returnCode.success, null);
         } catch (Exception e) {
-            return new response<>(returnCode.unKnownError, e.getMessage());
+            return new response<>(returnCode.UnknownError, e.getMessage());
         }
     }
 
@@ -143,7 +147,7 @@ public class UserOperationServiceImpl implements UserOperationService {
             accountRepo.deleteById(id);
             return new response<>(returnCode.success, null);
         } catch (Exception e) {
-            return new response<>(returnCode.unKnownError, e.getMessage());
+            return new response<>(returnCode.UnknownError, e.getMessage());
         }
     }
 
@@ -158,7 +162,7 @@ public class UserOperationServiceImpl implements UserOperationService {
                 accountRepo.save(record);
                 return new response<>(returnCode.success, null);
             } catch (Exception e) {
-                return new response<>(returnCode.unKnownError, e.getMessage());
+                return new response<>(returnCode.UnknownError, e.getMessage());
             }
         }
         return new response<>(returnCode.UnknownRecord, null);
@@ -167,19 +171,30 @@ public class UserOperationServiceImpl implements UserOperationService {
     @Transactional
     @Override
     public response<Object> importForbidden(FileDTO file) throws IOException {
-        Map<String, Integer> ColumnMap = new HashMap<>(7);
+        Map<String, Integer> ColumnMap = new HashMap<>(3);
         ColumnMap.put("sid", 0);
         ColumnMap.put("isTech", 1);
         ColumnMap.put("isPhy", 2);
-        readSheet(loadSheet(file), (row) -> {
+        XSSFSheet sheet = loadSheet(file);
+        readSheet(sheet, (row) -> {
+            System.out.println(row);
+            int[] String_row = new int[]{0};
+            for (int i : String_row) {
+                row.getCell(i).setCellType(CellType.STRING);
+            }
             String sid = row.getCell(ColumnMap.get("sid")).getStringCellValue();
             Account record = accountRepo.findAccountBySid(sid);
             if (!Objects.isNull(record)) {
-                record.setUserForbidden(new UserForbidden(
-                        0,
-                        row.getCell(ColumnMap.get("isTech")).getNumericCellValue() == 1,
-                        row.getCell(ColumnMap.get("isPhy")).getNumericCellValue() == 1
-                ));
+                boolean tech = row.getCell(ColumnMap.get("isTech")).getNumericCellValue() == 1;
+                boolean phy = row.getCell(ColumnMap.get("isPhy")).getNumericCellValue() == 1;
+                if (Objects.isNull(record.getUserForbidden())) {
+                    UserForbidden userForbidden = new UserForbidden(0, tech, phy);
+                    userForbiddenRepo.save(userForbidden);
+                    record.setUserForbidden(userForbidden);
+                } else {
+                    record.getUserForbidden().setTech(tech);
+                    record.getUserForbidden().setPhy(phy);
+                }
                 accountRepo.save(record);
             }
         });
@@ -225,7 +240,17 @@ public class UserOperationServiceImpl implements UserOperationService {
         return workbook;
     }
 
+    @Override
+    public response<Object> getAllUser() {
+        try {
+            List<Account> db = accountRepo.findAll();
+            return new response<>(returnCode.success, db);
+        } catch (Exception e) {
+            return new response<>(returnCode.UnknownError, e.getMessage() + "\n" + e.getClass().getName());
+        }
+    }
+
     interface readRow {
-        public void callback(XSSFRow row);
+        void callback(XSSFRow row);
     }
 }

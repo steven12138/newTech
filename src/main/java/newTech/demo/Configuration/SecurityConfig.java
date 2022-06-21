@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/user/login", "/setting", "/upload", "/file/**", "/info/**").anonymous()
+                .antMatchers("/user/login", "/setting", "/upload", "/file/**", "/info/error", "/info/status").anonymous()
                 .anyRequest().authenticated();
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

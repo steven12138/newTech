@@ -16,7 +16,7 @@ public class UserForbidden {
     @Column(name = "id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int sid;
+    private int id;
 
     @Column(name = "tech")
     private boolean tech;

@@ -79,11 +79,11 @@ public class SignUpServiceImpl implements SignUpService {
             UserForbidden forbidden = record.getUserForbidden();
             if (!Objects.isNull(forbidden)) {
                 if (forbidden.isPhy() && forbidden.isTech())
-                    return new response<>(returnCode.bothPassed, null);
+                    return new response<>(returnCode.BothPassed, null);
                 if (forbidden.isTech() && status.isTech())
-                    return new response<>(returnCode.techPassed, null);
+                    return new response<>(returnCode.TechPassed, null);
                 if (forbidden.isPhy() && status.isPhy())
-                    return new response<>(returnCode.phyPassed, null);
+                    return new response<>(returnCode.PhyPassed, null);
             }
             record.set_tech(status.isTech());
             record.set_phy(status.isPhy());
@@ -92,7 +92,7 @@ public class SignUpServiceImpl implements SignUpService {
                 accountRepo.save(record);
                 return new response<>(returnCode.success, null);
             } catch (Exception e) {
-                return new response<>(returnCode.unKnownError, e.getMessage());
+                return new response<>(returnCode.UnknownError, e.getMessage());
             }
         }
         return new response<>(returnCode.UnknownRecord, null);

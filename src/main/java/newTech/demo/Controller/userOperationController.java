@@ -31,16 +31,13 @@ public class userOperationController {
     UserOperationService userOperationService;
 
     @PostMapping("/upload")
-    public String testFile(FileDTO file) {
+    public response<Object> testFile(FileDTO file) {
         file.setFilename(file.getFile().getName());
         System.out.println(file.getFilename());
-        return "Get";
+        return new response<>(returnCode.success, file.getFilename());
     }
 
-
-    @PreAuthorize("hasAnyAuthority('admin')")
-    @PostMapping("/importUser")
-    public response<Object> importUser(FileDTO file) {
+    public response<Object> uploadRequest(FileDTO file, Callback callback) {
         file.setFilename(file.getFile().getOriginalFilename());
         if (Objects.isNull(file.getFile()) || file.getFile().getSize() == 0) {
             return new response<>(returnCode.InvalidFile, null);
@@ -49,12 +46,36 @@ public class userOperationController {
             return new response<>(returnCode.InvalidFileExtension, null);
         }
         try {
-            return userOperationService.importUser(file);
+            return callback.process(file);
         } catch (DataIntegrityViolationException e) {
             return new response<>(returnCode.InvalidData, null);
         } catch (Exception e) {
             return new response<>(returnCode.InvalidFile, e.getClass());
         }
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @PostMapping("/importUser")
+    public response<Object> importUser(FileDTO file) {
+        return uploadRequest(file, (file_t) -> userOperationService.importUser(file_t));
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @PostMapping("/importForbidden")
+    public response<Object> importForbidden(FileDTO file) {
+        return uploadRequest(file, (file_t) -> userOperationService.importForbidden(file_t));
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @PostMapping("/removeUser")
+    public response<Object> removeUser(FileDTO file) {
+        return uploadRequest(file, (file_t) -> userOperationService.removeUser(file_t));
+    }
+
+    @PreAuthorize("hasAnyAuthority('admin')")
+    @GetMapping("getAllUser")
+    public response<Object> getAllUser() {
+        return userOperationService.getAllUser();
     }
 
     private ResponseEntity<Resource> generateResponseEntity(Workbook workbook, String filename) {
@@ -106,5 +127,9 @@ public class userOperationController {
     public ResponseEntity<Resource> getSignUpStatus() {
         Workbook workbook = userOperationService.exportSignUpStatus();
         return generateResponseEntity(workbook, "SignUpStatus.xlsx");
+    }
+
+    private interface Callback {
+        response<Object> process(FileDTO file) throws IOException;
     }
 }

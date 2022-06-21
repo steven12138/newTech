@@ -57,8 +57,8 @@ public class Account {
     @Column(name = "max_credit")
     private int maxCredit;
 
-    @OneToOne
     @JoinColumn(name = "forbidden_id")
+    @OneToOne
     private UserForbidden userForbidden;
 
     public boolean getIs_tech() {

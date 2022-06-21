@@ -2,6 +2,7 @@ package newTech.demo.Handler;
 
 import newTech.demo.DTO.response;
 import newTech.demo.DTO.returnCode;
+import newTech.demo.Handler.Exception.DataNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public response<Object> BaseException(Exception e) {
-        return new response<>(returnCode.unKnownError, e.getClass().getName());
+        return new response<>(returnCode.UnknownError, e.getClass().getName());
     }
 
     @ExceptionHandler(ArrayIndexOutOfBoundsException.class)
@@ -29,4 +30,8 @@ public class GlobalExceptionHandler {
         return new response<>(returnCode.NoPrivileges, null);
     }
 
+    @ExceptionHandler(DataNotFoundException.class)
+    public response<Object> DataNotFound(DataNotFoundException e) {
+        return new response<>(returnCode.UnknownRecord, e.getMessage());
+    }
 }

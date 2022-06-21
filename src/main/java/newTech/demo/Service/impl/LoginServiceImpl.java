@@ -34,7 +34,7 @@ public class LoginServiceImpl implements LoginService {
     public response<LoginDTO> login(User user) {
         Account target = accountRepo.findAccountByUsername(user.getUsername());
         if (Objects.isNull(target)) {
-            return new response<LoginDTO>(returnCode.wrongUsernameOrPassword, null);
+            return new response<>(returnCode.WrongUsernameOrPassword, null);
         }
 
         Optional<Setting> setting_opt = settingRepo.findById(1);
@@ -51,14 +51,14 @@ public class LoginServiceImpl implements LoginService {
         }
 
         if (!passwordEncoder.matches(user.getPassword(), target.getPassword())) {
-            return new response<LoginDTO>(returnCode.wrongUsernameOrPassword, null);
+            return new response<>(returnCode.WrongUsernameOrPassword, null);
         }
 
         String token = jwtUtils.generateToken(target);
 
         redisTemplate.opsForValue().set("login" + target.getId(), token, Duration.ofMillis(jwtUtils.getExpired_time()));
 
-        return new response<LoginDTO>(
+        return new response<>(
                 returnCode.success,
                 new LoginDTO(token)
         );
@@ -68,9 +68,9 @@ public class LoginServiceImpl implements LoginService {
     public response<Object> logout(String token) {
         Integer id = jwtUtils.getId(token);
         if (Boolean.FALSE.equals(redisTemplate.delete("login" + id))) {
-            return new response<Object>(returnCode.unKnownError, null);
+            return new response<>(returnCode.UnknownError, null);
         }
-        return new response<Object>(
+        return new response<>(
                 returnCode.success,
                 null
         );

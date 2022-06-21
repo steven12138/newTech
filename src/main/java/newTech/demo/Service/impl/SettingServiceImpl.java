@@ -22,7 +22,7 @@ public class SettingServiceImpl implements SettingService {
         Optional<Setting> s = settingRepo.findById(1);
         System.out.println("get_service");
         return s.map(setting -> new response<>(returnCode.success, setting))
-                .orElseGet(() -> new response<>(returnCode.unKnownError, null));
+                .orElseGet(() -> new response<>(returnCode.UnknownError, null));
     }
 
     @Override
@@ -36,7 +36,7 @@ public class SettingServiceImpl implements SettingService {
             settingRepo.save(record);
             return new response<>(returnCode.success, null);
         } catch (Exception e) {
-            return new response<>(returnCode.unKnownError, e.getMessage());
+            return new response<>(returnCode.UnknownError, e.getMessage());
         }
     }
 }

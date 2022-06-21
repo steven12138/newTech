@@ -10,23 +10,25 @@ import java.io.IOException;
 
 
 public interface UserOperationService {
-    public response<Object> importUser(FileDTO file) throws IOException;
+     response<Object> importUser(FileDTO file) throws IOException;
 
-    public response<Object> removeUser(FileDTO file) throws IOException;
+     response<Object> removeUser(FileDTO file) throws IOException;
 
-    public response<Object> insertUser(userDTO user);
+     response<Object> insertUser(userDTO user);
 
-    public response<Object> removeUserSingle(int id);
+     response<Object> removeUserSingle(int id);
 
-    public response<Object> modifyUser(Account user);
+     response<Object> modifyUser(Account user);
 
-    public response<Object> importForbidden(FileDTO file) throws IOException;
+     response<Object> importForbidden(FileDTO file) throws IOException;
 
-    public Workbook exportSignUpStatus();
+     Workbook exportSignUpStatus();
 
-    public Workbook getImportModule();
+     Workbook getImportModule();
 
-    public Workbook getRemoveModule();
+     Workbook getRemoveModule();
 
-    public Workbook getForbiddenModule();
+     Workbook getForbiddenModule();
+
+     response<Object> getAllUser();
 }
