@@ -31,4 +31,7 @@ public class Setting {
 
     @Column(name = "info_error_msg")
     private String error_msg;
+
+    @Column(name = "rule")
+    private String rule;
 }

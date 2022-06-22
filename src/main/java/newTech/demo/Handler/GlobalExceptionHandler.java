@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public response<Object> BaseException(Exception e) {
-        return new response<>(returnCode.UnknownError, e.getClass().getName());
+        return new response<>(returnCode.UnknownError, e.getClass().getName() + " " + e.getMessage());
     }
 
     @ExceptionHandler(ArrayIndexOutOfBoundsException.class)

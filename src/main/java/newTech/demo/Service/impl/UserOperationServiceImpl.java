@@ -2,7 +2,6 @@ package newTech.demo.Service.impl;
 
 import cn.afterturn.easypoi.excel.ExcelExportUtil;
 import cn.afterturn.easypoi.excel.entity.ExportParams;
-import cn.hutool.core.bean.BeanUtil;
 import newTech.demo.DTO.FileDTO;
 import newTech.demo.DTO.response;
 import newTech.demo.DTO.returnCode;
@@ -126,7 +125,7 @@ public class UserOperationServiceImpl implements UserOperationService {
                 passwordEncoder.encode(user.getPassword()),
                 user.is_tech(),
                 user.is_phy(),
-                1,
+                0,
                 user.is_admin(),
                 user.getEid(),
                 user.getSid(),
@@ -151,6 +150,7 @@ public class UserOperationServiceImpl implements UserOperationService {
         }
     }
 
+    @Transactional
     @Override
     public response<Object> modifyUser(Account user) {
         Optional<Account> record_opt = accountRepo.findById(user.getId());
@@ -158,7 +158,27 @@ public class UserOperationServiceImpl implements UserOperationService {
             try {
                 Account record = record_opt.get();
                 redisTemplate.delete("login" + record.getId());
-                BeanUtil.copyProperties(user, record);
+                record.copy(user);
+                if (!Objects.equals(user.getPassword(), "")) {
+                    record.setPassword(passwordEncoder.encode(user.getPassword()));
+                }
+                if (!Objects.isNull(user.getUserForbidden())) {
+                    if (Objects.isNull(record.getUserForbidden())) {
+                        UserForbidden userForbidden = new UserForbidden();
+                        userForbidden.setTech(user.getUserForbidden().isTech());
+                        userForbidden.setPhy(user.getUserForbidden().isPhy());
+                        userForbiddenRepo.save(userForbidden);
+                        record.setUserForbidden(userForbidden);
+                    } else {
+                        record.getUserForbidden().setTech(user.getUserForbidden().isTech());
+                        record.getUserForbidden().setPhy(user.getUserForbidden().isPhy());
+                    }
+                } else {
+                    if (!Objects.isNull(record.getUserForbidden())) {
+                        userForbiddenRepo.delete(record.getUserForbidden());
+                        record.setUserForbidden(null);
+                    }
+                }
                 accountRepo.save(record);
                 return new response<>(returnCode.success, null);
             } catch (Exception e) {

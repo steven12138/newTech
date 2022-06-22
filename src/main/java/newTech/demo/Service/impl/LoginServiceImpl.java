@@ -83,11 +83,9 @@ public class LoginServiceImpl implements LoginService {
         if (passwordEncoder.matches(modifyPasswordDTO.getOldPassword(), target.getPassword())) {
             target.setPassword(passwordEncoder.encode(modifyPasswordDTO.getNewPassword()));
             accountRepo.save(target);
+            redisTemplate.delete("login" + id);
             return new response<>(returnCode.success, null);
         }
-
-        redisTemplate.delete("login" + id);
-
         return new response<>(returnCode.PasswordNotMatch, null);
     }
 }

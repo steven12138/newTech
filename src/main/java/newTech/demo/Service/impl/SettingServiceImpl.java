@@ -2,10 +2,10 @@ package newTech.demo.Service.impl;
 
 import newTech.demo.DTO.response;
 import newTech.demo.DTO.returnCode;
-import newTech.demo.DTO.settingDTO;
 import newTech.demo.Module.Data.Setting;
 import newTech.demo.Module.Data.repository.SettingRepository;
 import newTech.demo.Service.SettingService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -26,13 +26,10 @@ public class SettingServiceImpl implements SettingService {
     }
 
     @Override
-    public response<Object> modifySetting(settingDTO s) {
+    public response<Object> modifySetting(Setting s) {
         try {
             Setting record = settingRepo.findFirstById(1);
-            record.setEd_time(s.getEd_time());
-            record.setSt_time(s.getSt_time());
-            record.setForce_open(s.isForce_open());
-            record.setStrategy(s.isStrategy());
+            BeanUtils.copyProperties(s, record);
             settingRepo.save(record);
             return new response<>(returnCode.success, null);
         } catch (Exception e) {

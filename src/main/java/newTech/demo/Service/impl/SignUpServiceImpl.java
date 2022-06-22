@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 public class SignUpServiceImpl implements SignUpService {
@@ -69,33 +70,39 @@ public class SignUpServiceImpl implements SignUpService {
             if (!(now >= st_time && now <= ed_time) && !setting.isForce_open()) {
                 return new response<>(returnCode.SystemOff, null);
             }
+            Optional<Account> record_opt = accountRepo.findById(id);
+            if (record_opt.isPresent()) {
+                Account record = record_opt.get();
+                if (setting.isStrategy()) {
+                    String sid = record.getSid();
+                    if (Pattern.matches(setting.getRule(), sid) && record.getMaxCredit() < 4) {
+                        return new response<>(returnCode.StrategyLimit, null);
+                    }
+                }
+
+                UserForbidden forbidden = record.getUserForbidden();
+                if (!Objects.isNull(forbidden)) {
+                    if (forbidden.isPhy() && forbidden.isTech())
+                        return new response<>(returnCode.BothPassed, null);
+                    if (forbidden.isTech() && status.isTech())
+                        return new response<>(returnCode.TechPassed, null);
+                    if (forbidden.isPhy() && status.isPhy())
+                        return new response<>(returnCode.PhyPassed, null);
+                }
+                record.set_tech(status.isTech());
+                record.set_phy(status.isPhy());
+                record.setStep(2);
+                try {
+                    accountRepo.save(record);
+                    return new response<>(returnCode.success, null);
+                } catch (Exception e) {
+                    return new response<>(returnCode.UnknownError, e.getMessage());
+                }
+            }
+            return new response<>(returnCode.UnknownRecord, null);
         } else {
             return new response<>(returnCode.SystemOff, null);
         }
-
-        Optional<Account> record_opt = accountRepo.findById(id);
-        if (record_opt.isPresent()) {
-            Account record = record_opt.get();
-            UserForbidden forbidden = record.getUserForbidden();
-            if (!Objects.isNull(forbidden)) {
-                if (forbidden.isPhy() && forbidden.isTech())
-                    return new response<>(returnCode.BothPassed, null);
-                if (forbidden.isTech() && status.isTech())
-                    return new response<>(returnCode.TechPassed, null);
-                if (forbidden.isPhy() && status.isPhy())
-                    return new response<>(returnCode.PhyPassed, null);
-            }
-            record.set_tech(status.isTech());
-            record.set_phy(status.isPhy());
-            record.setStep(2);
-            try {
-                accountRepo.save(record);
-                return new response<>(returnCode.success, null);
-            } catch (Exception e) {
-                return new response<>(returnCode.UnknownError, e.getMessage());
-            }
-        }
-        return new response<>(returnCode.UnknownRecord, null);
     }
 
     @Override

@@ -22,7 +22,7 @@ public enum returnCode {
     InvalidData(10015, "Data Invalid, Check for duplicate sid"),
 
     SystemOff(10016, "System Is No Open"),
-
+    StrategyLimit(10017, "Forbidden Due To SignUp Strategy"),
     success(10000, "success"),
 
     testAPI(90000, "接口测试");

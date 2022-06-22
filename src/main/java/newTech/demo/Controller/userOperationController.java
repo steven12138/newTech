@@ -1,8 +1,7 @@
 package newTech.demo.Controller;
 
-import newTech.demo.DTO.FileDTO;
-import newTech.demo.DTO.response;
-import newTech.demo.DTO.returnCode;
+import newTech.demo.DTO.*;
+import newTech.demo.Module.Data.Account;
 import newTech.demo.Service.UserOperationService;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.core.io.InputStreamResource;
@@ -14,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.ByteArrayInputStream;
@@ -32,9 +32,7 @@ public class userOperationController {
 
     @PostMapping("/upload")
     public response<Object> testFile(FileDTO file) {
-        file.setFilename(file.getFile().getName());
-        System.out.println(file.getFilename());
-        return new response<>(returnCode.success, file.getFilename());
+        return new response<>(returnCode.success, null);
     }
 
     public response<Object> uploadRequest(FileDTO file, Callback callback) {
@@ -70,6 +68,28 @@ public class userOperationController {
     @PostMapping("/removeUser")
     public response<Object> removeUser(FileDTO file) {
         return uploadRequest(file, (file_t) -> userOperationService.removeUser(file_t));
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @PostMapping("/removeSingleUser")
+    public response<Object> removeSingleUser(@RequestBody idDTO id) {
+        return userOperationService.removeUserSingle(id.getId());
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @PostMapping("/insertUser")
+    public response<Object> insertUser(@RequestBody userDTO user) {
+        return userOperationService.insertUser(user);
+    }
+
+    @PreAuthorize("hasAuthority('admin')")
+    @PostMapping("/modifyUser")
+    public response<Object> modifyUser(@RequestBody Account user) {
+        try {
+            return userOperationService.modifyUser(user);
+        } catch (Exception e) {
+            return new response<>(returnCode.UnknownError, e.getClass().getName());
+        }
     }
 
     @PreAuthorize("hasAnyAuthority('admin')")

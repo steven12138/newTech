@@ -68,4 +68,15 @@ public class Account {
     public boolean getIs_phy() {
         return is_phy;
     }
+
+    public void copy(Account target) {
+        this.eid = target.getEid();
+        this.is_tech = target.getIs_tech();
+        this.is_phy = target.getIs_phy();
+        this.maxCredit = target.getMaxCredit();
+        this.realName = target.getRealName();
+        this.sid = target.getSid();
+        this.username = target.getUsername();
+        this.step = target.getStep();
+    }
 }
