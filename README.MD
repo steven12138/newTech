@@ -2,7 +2,7 @@
 
 - 2022年重构
 - Designed by StevenKerman SubIT
-- Powered By Springboot
+- Powered By Springboot 2.7.0
 # Requirement 项目依赖
 
 ```
