@@ -57,3 +57,6 @@ token: "[JWT Secret]"
 ```shell
 nohup java -jar xxx.jar > /path &
 ```
+
+5. 配置nginx
+- 请将前端的nginx添加代理，将```[url]/api``` 代理到```localhost:[port]```
