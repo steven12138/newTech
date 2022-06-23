@@ -2,12 +2,13 @@
 
 - 2022年重构
 - Designed by StevenKerman SubIT
-
+- Powered By Springboot
 # Requirement 项目依赖
 
 ```
 1. Java (18.0.1) & maven
 2. MySQL or mariaDB
+3. Redis
 ```
 
 # Deploy 部署
